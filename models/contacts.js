@@ -1,49 +1,61 @@
-const fs = require("fs/promises");
-
-const path = require("path");
-
-const contactsPath = path.join(__dirname, "contacts.json");
+const Contact = require("../schemas/dbConnect");
 
 async function listContacts() {
-  const data = await fs.readFile(contactsPath, "utf-8");
-  return JSON.parse(data);
+  try {
+    const contacts = await Contact.find();
+    return contacts;
+  } catch (error) {
+    throw new Error("Error fetching contacts");
+  }
 }
 
 async function getById(contactId) {
-  const contacts = await listContacts();
-  return contacts.find((contact) => contact.id === contactId);
+  try {
+    const contact = await Contact.findById(contactId);
+    if (!contact) {
+      throw new Error("Contact not found");
+    }
+    return contact;
+  } catch (error) {
+    throw new Error("Error fetching contact by ID");
+  }
 }
 
 async function addContact(contact) {
-  const contacts = await listContacts();
-  const newContact = { id: Date.now().toString(), ...contact };
-  contacts.push(newContact);
-  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-  return newContact;
+  try {
+    const newContact = await Contact.create(contact);
+    return newContact;
+  } catch (error) {
+    throw new Error("Error creating contact");
+  }
 }
 
 async function removeContact(contactId) {
-  const contacts = await listContacts();
-  const updatedContacts = contacts.filter(
-    (contact) => contact.id !== contactId
-  );
-  await fs.writeFile(contactsPath, JSON.stringify(updatedContacts, null, 2));
-  return { message: "contact deleted" };
+  try {
+    const result = await Contact.findByIdAndDelete(contactId);
+    if (!result) {
+      throw new Error("Contact not found");
+    }
+    return { message: "Contact deleted" };
+  } catch (error) {
+    throw new Error("Error deleting contact");
+  }
 }
 
 async function updateContact(contactId, updatedFields) {
-  const contacts = await listContacts();
-  const index = contacts.findIndex((contact) => contact.id === contactId);
-
-  if (index === -1) {
-    throw new Error("Not found");
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(
+      contactId,
+      updatedFields,
+      { new: true }
+    );
+    if (!updatedContact) {
+      throw new Error("Contact not found");
+    }
+    return updatedContact;
+  } catch (error) {
+    throw new Error("Error updating contact");
   }
-
-  const updatedContact = { ...contacts[index], ...updatedFields };
-  contacts[index] = updatedContact;
-
-  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-  return updatedContact;
 }
 
 module.exports = {

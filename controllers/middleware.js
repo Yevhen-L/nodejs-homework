@@ -1,5 +1,4 @@
 const contactSchema = require("../schemas/contactSchema");
-
 const handleValidationError = (res, error) => {
   res.status(400).json({ message: error.message });
 };
