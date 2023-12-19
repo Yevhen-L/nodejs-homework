@@ -2,9 +2,24 @@ const ContactsModel = require("../models/ContactsModel");
 
 class ContactsController {
   createContact = async (req, res) => {
-    const contact = await ContactsModel.create({ ...req.body });
-    res.status(201).json({ code: 201, data: contact, message: "OK" });
+    try {
+      const { name, email, phone, favorite } = req.body;
+
+      const newContact = await ContactsModel.create({
+        name,
+        email,
+        phone,
+        favorite: favorite || false, // За замовчуванням false, якщо відсутнє значення в запиті
+      });
+
+      res.status(201).json({ code: 201, data: newContact, message: "OK" });
+      // console.log(`Contact ${newContact.name} added succefull.`);
+    } catch (error) {
+      console.error("Error creating contact:", error.message);
+      res.status(500).json({ code: 500, message: "Internal Server Error" });
+    }
   };
+
   getOneContact = (req, res) => {
     res.send("test getOneContact");
   };

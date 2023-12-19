@@ -1,4 +1,4 @@
-const contactsController = require("..//../controllers/ContactsController");
+const contactsController = require("../controllers/contactsController");
 
 const contactsRouter = require("express").Router();
 

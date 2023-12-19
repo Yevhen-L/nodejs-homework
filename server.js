@@ -22,7 +22,7 @@ app.use(express.json());
 // app.use(cors());
 //
 
-app.use("/api/v1", require("./routes/api/ContactsRoutes"));
+app.use("/api/v1", require("./routes/ContactsRoutes"));
 
 app.use("*", notFoundRoutes);
 
