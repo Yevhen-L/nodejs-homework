@@ -1,11 +1,12 @@
 const { error } = require("console");
 const asyncHandler = require("express-async-handler");
 const ContactsModel = require("../models/ContactsModel");
+const { isValidObjectId } = require("mongoose");
 
 class ContactsController {
   createContact = asyncHandler(async (req, res) => {
     const { name, email, phone, favorite } = req.body;
-    if (!name || !email || !phone || !favorite) {
+    if (!name || !email || !phone || favorite === undefined) {
       res.status(400);
       throw new Error(
         "Controller validation. Please, provide all required fields!"
@@ -19,7 +20,7 @@ class ContactsController {
     const { id } = req.params;
     const contact = await ContactsModel.findById(id);
     if (!contact) {
-      res.status(400);
+      res.status(404);
       throw new Error(`ID: ${id} is not found`);
     }
     res.status(200).json({ code: 200, data: contact, message: "OK" });
@@ -36,6 +37,11 @@ class ContactsController {
     const { id } = req.params;
     const contactRemove = await ContactsModel.findByIdAndDelete(id);
 
+    if (!contactRemove) {
+      res.status(404);
+      throw new Error(`ID: ${id} is not found`);
+    }
+
     res
       .status(200)
       .json({ code: 200, data: contactRemove, message: "Deleted" });
@@ -48,39 +54,38 @@ class ContactsController {
       { ...req.body },
       { new: true, runValidators: true }
     );
+
     if (!contact) {
-      res.status(400);
+      res.status(404);
       throw new Error(`ID: ${id} is not found`);
     }
+
     res.status(200).json({ code: 200, data: contact, message: "updated" });
   });
 
-  updateFavoriteStatus = asyncHandler(async (req, res) => {
+  updateFavoriteStatus = async (req, res) => {
     const { id } = req.params;
-    const { favorite } = req.body;
+    const isValidId = isValidObjectId(id);
 
-    try {
-      if (favorite === undefined) {
-        throw new Error("missing field favorite");
-      }
-      const updatedContact = await ContactsModel.findByIdAndUpdate(
-        id,
-        { favorite },
-        { new: true }
-      );
-      if (!updatedContact) {
-        res.status(404).json({ code: 404, message: "Not found" });
-        return;
-      }
-      res.status(200).json({ code: 200, data: updatedContact, message: "OK" });
-    } catch (error) {
-      if (error.message === "missing field favorite") {
-        res.status(400).json({ code: 400, message: "missing field favorite" });
-      } else {
-        res.status(500).json({ code: 500, message: "Internal Server Error" });
-      }
+    if (!isValidId) {
+      res.status(400).json({ message: `${id} isn't a valid contactId!` });
+      return;
     }
-  });
+
+    const body = req.body;
+    const { error } = ContactsModel.validate(body);
+
+    if (error) {
+      res.status(400).json({ message: "missing required favourite field" });
+      return;
+    }
+
+    const result = await ContactsModel.findByIdAndUpdate(id, body, {
+      new: true,
+    }).lean();
+
+    res.json(result);
+  };
 }
 
 module.exports = new ContactsController();

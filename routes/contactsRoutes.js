@@ -35,7 +35,7 @@ contactsRouter.patch(
 contactsRouter.patch(
   "/contacts/:id/favorite",
   validateId,
-  contactsController.updateFavoriteStatus
+  asyncHandler(contactsController.updateFavoriteStatus)
 );
 
 module.exports = contactsRouter;
