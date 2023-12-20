@@ -10,6 +10,7 @@ require("dotenv").config({ path: configPath });
 
 const connectDB = require("./config/ConnectDB");
 const notFoundRoutes = require("./middlewares/NotFoundRoutes");
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
@@ -25,10 +26,11 @@ app.use(express.json());
 app.use("/api/v1", require("./routes/ContactsRoutes"));
 
 app.use("*", notFoundRoutes);
+app.use(errorHandler);
 
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message });
-});
+// app.use((err, req, res, next) => {
+//   res.status(500).json({ message: err.message });
+// });
 
 const { PORT } = process.env;
 

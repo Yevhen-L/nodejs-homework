@@ -1,171 +1,86 @@
+const { error } = require("console");
+const asyncHandler = require("express-async-handler");
 const ContactsModel = require("../models/ContactsModel");
 
 class ContactsController {
-  createContact = async (req, res) => {
-    try {
-      const { name, email, phone, favorite } = req.body;
-
-      const newContact = await ContactsModel.create({
-        name,
-        email,
-        phone,
-        favorite: favorite || false, // За замовчуванням false, якщо відсутнє значення в запиті
-      });
-
-      res.status(201).json({ code: 201, data: newContact, message: "OK" });
-      // console.log(`Contact ${newContact.name} added succefull.`);
-    } catch (error) {
-      console.error("Error creating contact:", error.message);
-      res.status(500).json({ code: 500, message: "Internal Server Error" });
+  createContact = asyncHandler(async (req, res) => {
+    const { name, email, phone, favorite } = req.body;
+    if (!name || !email || !phone || !favorite) {
+      res.status(400);
+      throw new Error(
+        "Controller validation. Please, provide all required fields!"
+      );
     }
-  };
+    const newContact = await ContactsModel.create({ ...req.body });
+    res.status(201).json({ code: 201, data: newContact, message: "OK" });
+  });
 
-  getOneContact = (req, res) => {
-    res.send("test getOneContact");
-  };
-  getAllContacts = (req, res) => {
-    res.send("test getAllContacts");
-  };
-  removeContact = (req, res) => {
-    res.send("test removeContact");
-  };
-  updateContactInfo = (req, res) => {
-    res.send("test updateContactInfo");
-  };
-  updateContactInfo = (req, res) => {
-    res.send("test updateContactInfo");
-  };
-  updateFavoriteStatus = (req, res) => {
-    res.send("test updateFavoriteStatus");
-  };
+  getOneContact = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const contact = await ContactsModel.findById(id);
+    if (!contact) {
+      res.status(400);
+      throw new Error(`ID: ${id} is not found`);
+    }
+    res.status(200).json({ code: 200, data: contact, message: "OK" });
+  });
+
+  getAllContacts = asyncHandler(async (req, res) => {
+    const contacts = await ContactsModel.find({});
+    res
+      .status(200)
+      .json({ code: 200, qty: contacts.length, data: contacts, message: "OK" });
+  });
+
+  removeContact = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const contactRemove = await ContactsModel.findByIdAndDelete(id);
+
+    res
+      .status(200)
+      .json({ code: 200, data: contactRemove, message: "Deleted" });
+  });
+
+  updateContactInfo = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const contact = await ContactsModel.findByIdAndUpdate(
+      id,
+      { ...req.body },
+      { new: true, runValidators: true }
+    );
+    if (!contact) {
+      res.status(400);
+      throw new Error(`ID: ${id} is not found`);
+    }
+    res.status(200).json({ code: 200, data: contact, message: "updated" });
+  });
+
+  updateFavoriteStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { favorite } = req.body;
+
+    try {
+      if (favorite === undefined) {
+        throw new Error("missing field favorite");
+      }
+      const updatedContact = await ContactsModel.findByIdAndUpdate(
+        id,
+        { favorite },
+        { new: true }
+      );
+      if (!updatedContact) {
+        res.status(404).json({ code: 404, message: "Not found" });
+        return;
+      }
+      res.status(200).json({ code: 200, data: updatedContact, message: "OK" });
+    } catch (error) {
+      if (error.message === "missing field favorite") {
+        res.status(400).json({ code: 400, message: "missing field favorite" });
+      } else {
+        res.status(500).json({ code: 500, message: "Internal Server Error" });
+      }
+    }
+  });
 }
+
 module.exports = new ContactsController();
-// try {
-//   const newContact = await Contact.create({
-//     ...req.body,
-//     favorite: req.body.favorite || false,
-//   });
-//   res.status(201).json(newContact);
-// } catch (error) {
-//   console.error("Error creating contact:", error.message);
-//   res
-//     .status(500)
-//     .json({
-//       message: "Internal Server Error-ХЗ що сталось з createContact",
-//     });
-// }
-//   };
-// }
-
-// const Contact = require("../routes/api/contactsRoutes");
-
-// const getAllContacts = async (req, res) => {
-//   try {
-//     const contacts = await Contact.find();
-//     res.status(200).json(contacts);
-//   } catch (error) {
-//     console.error("Error getting contacts:", error.message);
-//     res.status(500).json({
-//       message: "Internal Server Error ХЗ що сталось з getContactsALL",
-//     });
-//   }
-// };
-
-// const getOneContact = async (req, res) => {
-//   try {
-//     const contact = await Contact.findById(req.params.id);
-//     res.status(contact ? 200 : 404).json(contact || { message: "Not found" });
-//   } catch (error) {
-//     console.error("Error getting contact by ID:", error.message);
-//     res.status(500).json({
-//       message: "Internal Server Error ХЗ що сталось з getContactById 000",
-//     });
-//   }
-// };
-
-//
-
-// const deleteContact = async (req, res) => {
-//   try {
-//     const result = await Contact.findByIdAndDelete(req.params.id);
-//     res
-//       .status(result ? 200 : 404)
-//       .json(result ? { message: "Contact deleted" } : { message: "Not found" });
-//   } catch (error) {
-//     console.error("Error deleting contact:", error.message);
-//     res
-//       .status(500)
-//       .json({ message: "Internal Server Error-ХЗ що сталось 3 deleteContact" });
-//   }
-// };
-
-// const updateContactInfo = async (req, res) => {
-//   try {
-//     const updatedContact = await Contact.findByIdAndUpdate(
-//       req.params.id,
-//       { ...req.body, favorite: req.body.favorite || false },
-//       { new: true }
-//     );
-//     res
-//       .status(updatedContact ? 200 : 404)
-//       .json(updatedContact || { message: "Not found" });
-//   } catch (error) {
-//     console.error("Error updating contact:", error.message);
-//     res.status(500).json({
-//       message: "Internal Server Error-ХЗ що сталось з updateContactInfo",
-//     });
-//   }
-// };
-
-// const updateFavoriteStatus = async (req, res) => {
-//   try {
-//     const { contactId } = req.params;
-//     const { body } = req;
-
-//     // Виклик функції для оновлення статусу контакту
-//     const updatedContact = await updateStatusContact(contactId, body);
-
-//     // Відправлення відповіді з оновленим контактом і статусом 200
-//     res.status(200).json(updatedContact);
-//   } catch (error) {
-//     // Обробка помилок
-//     if (error.message === "missing field favorite") {
-//       // Поле favorite не передано в тілі запиту
-//       res.status(400).json({ message: "missing field favorite" });
-//     } else if (error.message === "Not found") {
-//       // Контакт не знайдено
-//       res.status(404).json({ message: "Not found" });
-//     } else {
-//       // Інші помилки
-//       res.status(500).json({ message: "Internal Server Error-ХЗ що сталось" });
-//     }
-//   }
-// };
-
-// const updateStatusContact = async (contactId, body) => {
-//   // Перевірка, чи передано поле favorite
-//   if (body.favorite === undefined) {
-//     throw new Error("missing field favorite");
-//   }
-
-//   // Оновлення статусу контакту
-//   const updatedContact = await Contact.findByIdAndUpdate(
-//     contactId,
-//     { favorite: body.favorite },
-//     { new: true }
-//   );
-//   // Перевірка, чи контакт існує
-//   if (!updatedContact) {
-//     throw new Error("Not found");
-//   }
-//   return updatedContact;
-// };
-
-// {
-//   getAllContacts,
-//   getOneContact,
-//   createContact,
-//   deleteContact,
-//   updateContactInfo,
-//   updateFavoriteStatus,
-// };
