@@ -42,9 +42,11 @@ class ContactsController {
       throw new Error(`ID: ${id} is not found`);
     }
 
-    res
-      .status(200)
-      .json({ code: 200, data: contactRemove, message: "Deleted" });
+    res.status(200).json({
+      code: 200,
+      data: contactRemove,
+      message: `Contact ${contactRemove.name} with ID ${contactRemove.id} deleted`,
+    });
   });
 
   updateContactInfo = asyncHandler(async (req, res) => {
