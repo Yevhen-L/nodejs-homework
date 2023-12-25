@@ -12,6 +12,9 @@ const connectDB = require("./config/ConnectDB");
 const notFoundRoutes = require("./middlewares/NotFoundRoutes");
 const errorHandler = require("./middlewares/errorHandler");
 
+const contactsRouter = require("./routes/api/contactsRoutes");
+const usersRouter = require("./routes/api/authRoutes");
+
 const app = express();
 
 app.use(express.urlencoded({ extended: false }));
@@ -23,7 +26,8 @@ app.use(express.json());
 // app.use(cors());
 //
 
-app.use("/api/v1", require("./routes/api/ContactsRoutes"));
+app.use("/api/v1", contactsRouter);
+app.use("/api/v1", usersRouter);
 
 app.use("*", notFoundRoutes);
 app.use(errorHandler);
