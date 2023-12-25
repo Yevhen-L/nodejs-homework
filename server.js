@@ -1,5 +1,41 @@
-const app = require('./app')
+require("colors");
 
-app.listen(3000, () => {
-  console.log("Server running. Use our API on port: 3000")
-})
+const express = require("express");
+
+const path = require("path");
+
+const configPath = path.join(__dirname, ".", "config", ".env");
+
+require("dotenv").config({ path: configPath });
+
+const connectDB = require("./config/ConnectDB");
+const notFoundRoutes = require("./middlewares/NotFoundRoutes");
+const errorHandler = require("./middlewares/errorHandler");
+
+const app = express();
+
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+// const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+
+// app.use(logger(formatsLogger));
+// app.use(cors());
+//
+
+app.use("/api/v1", require("./routes/api/ContactsRoutes"));
+
+app.use("*", notFoundRoutes);
+app.use(errorHandler);
+
+// app.use((err, req, res, next) => {
+//   res.status(500).json({ message: err.message });
+// });
+
+const { PORT } = process.env;
+
+connectDB();
+
+app.listen(PORT, () => {
+  console.log(`Server running on port: ${PORT}.`.brightGreen.bold.italic);
+});
