@@ -11,8 +11,8 @@ const connectDB = async () => {
   try {
     const DB = await connect(process.env.DB_HOST);
     console.log(
-      `Database: ${DB.connection.name}, HOST: ${DB.connection.host}, PORT: ${DB.connection.port} - connected is successfull.`
-        .brightGreen.bold.italic
+      `Database ${DB.connection.name} is successfully connected, HOST: ${DB.connection.host}, PORT: ${DB.connection.port}.`
+        .brightGreen.italic
     );
   } catch (error) {
     console.log(

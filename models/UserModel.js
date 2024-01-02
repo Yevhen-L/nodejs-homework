@@ -1,4 +1,7 @@
 const { model, Schema } = require("mongoose");
+
+const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
 const userSchema = new Schema({
   password: {
     type: String,
@@ -6,6 +9,7 @@ const userSchema = new Schema({
   },
   email: {
     type: String,
+    match: emailRegex,
     required: [true, "Email is required"],
     unique: true,
   },
@@ -16,4 +20,5 @@ const userSchema = new Schema({
   },
   token: String,
 });
+
 module.exports = model("users", userSchema);

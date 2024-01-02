@@ -1,6 +1,6 @@
 const { error } = require("console");
 const asyncHandler = require("express-async-handler");
-const ContactsModel = require("../models/ContactsModel");
+const ContactsModel = require("../models/contactsModel");
 const { isValidObjectId } = require("mongoose");
 
 class ContactsController {
