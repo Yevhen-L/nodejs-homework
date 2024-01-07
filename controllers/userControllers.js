@@ -38,7 +38,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Email or password is wrong" });
     }
 
-    const token = jwt.sign({ userId: user._id }, "your_secret_key", {
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
@@ -62,7 +62,7 @@ const logOutUser = async (req, res) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const { userId } = jwt.verify(token, "your_secret_key");
+    const { userId } = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await UserModel.findById(userId);
 
@@ -79,5 +79,13 @@ const logOutUser = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+const getCurrentUser = (req, res) => {
+  try {
+    const { email, subscription } = req.user;
+    res.status(200).json({ email, subscription });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
-module.exports = { registerUser, loginUser, logOutUser };
+module.exports = { registerUser, loginUser, logOutUser, getCurrentUser };

@@ -21,7 +21,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // const formatsLogger = app.get("env") === "development" ? "dev" : "short";
-
 // app.use(logger(formatsLogger));
 // app.use(cors());
 //
