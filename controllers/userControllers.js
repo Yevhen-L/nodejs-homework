@@ -6,8 +6,6 @@ const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Валідація email та password, можливо використовуючи Joi
-
     const existingUser = await UserModel.findOne({ email });
 
     if (existingUser) {
@@ -29,12 +27,10 @@ const registerUser = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
+//======================================================================
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Валідація email та password, можливо використовуючи Joi
 
     const user = await UserModel.findOne({ email });
 
@@ -57,5 +53,31 @@ const loginUser = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+//======================================================================
+const logOutUser = async (req, res) => {
+  try {
+    const token = req.header("Authorization").replace("Bearer ", "");
 
-module.exports = { registerUser, loginUser };
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const { userId } = jwt.verify(token, "your_secret_key");
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    user.token = null;
+    await user.save();
+
+    return res.status(204).end();
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports = { registerUser, loginUser, logOutUser };

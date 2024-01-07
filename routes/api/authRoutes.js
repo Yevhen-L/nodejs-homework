@@ -2,15 +2,16 @@ const express = require("express");
 const {
   registerUser,
   loginUser,
+  logOutUser,
 } = require("..//../controllers/userControllers");
-const { checkToken } = require("..//../middlewares/authMiddleware");
+const { authenticateToken } = require("..//../middlewares/authMiddleware");
 
 const usersRouter = express.Router();
 
 usersRouter.post("/users/register", registerUser);
 usersRouter.post("/users/login", loginUser);
+usersRouter.post("/users/logout", authenticateToken, logOutUser);
 
-// Перевірка токена для захищених роутів
-usersRouter.use("/users/protected", checkToken);
+usersRouter.use("/users/protected", authenticateToken);
 
 module.exports = usersRouter;

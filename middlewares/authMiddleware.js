@@ -1,27 +1,31 @@
 const jwt = require("jsonwebtoken");
 const UserModel = require("..//models/userModel");
 
-const checkToken = async (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ message: "Not authorized" });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const decodedToken = jwt.verify(token, "your_secret_key");
+    const decoded = jwt.verify(token, "wwww");
 
-    const user = await UserModel.findById(decodedToken.userId);
+    const user = await UserModel.findById(decoded.userId);
 
     if (!user || user.token !== token) {
-      return res.status(401).json({ message: "Not authorized" });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    req.user = user;
+    req.user = {
+      id: user._id,
+      email: user.email,
+      subscription: user.subscription,
+    };
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Not authorized" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };
 
-module.exports = { checkToken };
+module.exports = { authenticateToken };
