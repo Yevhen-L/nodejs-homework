@@ -26,14 +26,10 @@ app.use(express.json());
 //
 
 app.use("/api/v1", contactsRouter);
-app.use("/api/v1", usersRouter);
+app.use("/", usersRouter);
 
 app.use("*", notFoundRoutes);
 app.use(errorHandler);
-
-// app.use((err, req, res, next) => {
-//   res.status(500).json({ message: err.message });
-// });
 
 const { PORT } = process.env;
 

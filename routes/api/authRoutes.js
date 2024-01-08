@@ -14,6 +14,6 @@ usersRouter.post("/users/login", loginUser);
 usersRouter.get("/users/logout", authenticateToken, logOutUser);
 usersRouter.get("/users/current", authenticateToken, getCurrentUser);
 
-usersRouter.use("/users/protected", authenticateToken);
+// usersRouter.use("/users/protected", authenticateToken);
 
 module.exports = usersRouter;
