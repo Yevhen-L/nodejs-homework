@@ -1,18 +1,17 @@
 const express = require("express");
-const {
-  registerUser,
-  loginUser,
-  logOutUser,
-  getCurrentUser,
-} = require("..//../controllers/userControllers");
+
+const controllers = require("../../controllers/index");
+
+const userControllers = controllers.userControllers;
+
 const { authenticateToken } = require("..//../middlewares/authMiddleware");
 
 const usersRouter = express.Router();
 
-usersRouter.post("/users/register", registerUser);
-usersRouter.post("/users/login", loginUser);
-usersRouter.get("/users/logout", authenticateToken, logOutUser);
-usersRouter.get("/users/current", authenticateToken, getCurrentUser);
+usersRouter.post("/register", userControllers.registerUser);
+usersRouter.post("/login", userControllers.loginUser);
+usersRouter.get("/logout", authenticateToken, userControllers.logOutUser);
+usersRouter.get("/current", authenticateToken, userControllers.getCurrentUser);
 
 // usersRouter.use("/users/protected", authenticateToken);
 

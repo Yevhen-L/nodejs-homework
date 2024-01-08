@@ -1,10 +1,11 @@
 const contactsRouter = require("express").Router();
-const contactsController = require("../../controllers/contactsController");
+const controllers = require("../../controllers/index");
 const asyncHandler = require("express-async-handler");
 const validateId = require("../../middlewares/validateByID");
+const contactsController = controllers.contactsController;
 
 contactsRouter.post(
-  "/contacts",
+  "/",
   (req, res, next) => {
     console.log("joi");
     next();
@@ -12,28 +13,16 @@ contactsRouter.post(
   contactsController.createContact
 );
 
-contactsRouter.get(
-  "/contacts/:id",
-  validateId,
-  contactsController.getOneContact
-);
+contactsRouter.get("/:id", validateId, contactsController.getOneContact);
 
 contactsRouter.get("/contacts", contactsController.getAllContacts);
 
-contactsRouter.delete(
-  "/contacts/:id",
-  validateId,
-  contactsController.removeContact
-);
+contactsRouter.delete("/:id", validateId, contactsController.removeContact);
+
+contactsRouter.patch("/:id", validateId, contactsController.updateContactInfo);
 
 contactsRouter.patch(
-  "/contacts/:id",
-  validateId,
-  contactsController.updateContactInfo
-);
-
-contactsRouter.patch(
-  "/contacts/:id/favorite",
+  "/:id/favorite",
   validateId,
   asyncHandler(contactsController.updateFavoriteStatus)
 );

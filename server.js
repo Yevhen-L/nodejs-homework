@@ -25,8 +25,8 @@ app.use(express.json());
 // app.use(cors());
 //
 
-app.use("/api/v1", contactsRouter);
-app.use("/", usersRouter);
+app.use("/contacts", contactsRouter);
+app.use("/users", usersRouter);
 
 app.use("*", notFoundRoutes);
 app.use(errorHandler);
