@@ -1,15 +1,12 @@
 require("colors");
-
-const express = require("express");
-
+const app = require("./app");
+// const express = require("express");
 const path = require("path");
 const configPath = path.join(__dirname, ".", "config", ".env");
-
 require("dotenv").config({ path: configPath });
 
 const connectDB = require("./config/ConnectDB");
-
-const app = express();
+// const app = express("./app");
 
 const { PORT } = process.env;
 
