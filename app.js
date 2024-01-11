@@ -5,8 +5,7 @@ const cors = require("cors");
 const notFoundRoutes = require("./middlewares/NotFoundRoutes");
 const errorHandler = require("./middlewares/errorHandler");
 
-const contactsRouter = require("./routes/api/contactsRoutes");
-const usersRouter = require("./routes/api/authRoutes");
+const { contactsRouter, usersRouter } = require("./routes/api/index");
 
 const app = express();
 

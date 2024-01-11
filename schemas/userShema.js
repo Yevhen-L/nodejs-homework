@@ -8,9 +8,9 @@ const contactSchema = Joi.object({
   phone: Joi.string().min(7).required(),
 });
 
-const validateContact = async (req, res, next) => {
+const validateUsers = async (req, res, next) => {
   try {
-    await contactSchema.validateAsync(req.body);
+    await usersSchema.validateAsync(req.body);
     next();
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -22,6 +22,6 @@ const handleNotFoundError = (res) => {
 };
 
 module.exports = {
-  validateContact,
+  validateUsers,
   handleNotFoundError,
 };

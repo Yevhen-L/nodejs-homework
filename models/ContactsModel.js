@@ -11,6 +11,9 @@ const contactsSchema = new Schema(
     phone: {
       type: String,
     },
+    avatar: {
+      type: String,
+    },
     favorite: {
       type: Boolean,
       default: false,
@@ -20,8 +23,7 @@ const contactsSchema = new Schema(
       ref: "user",
     },
   },
-
-  { versionKey: false }
+  { timestamps: true, versionKey: false }
 );
 
 module.exports = model("contacts", contactsSchema);

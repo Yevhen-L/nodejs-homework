@@ -3,7 +3,6 @@ const asyncHandler = require("express-async-handler");
 const { isValidObjectId } = require("mongoose");
 // const contacts = require("../models/index");
 // const ContactsModel = contacts.contactsModel;
-
 const { contactsModel: ContactsModel } = require("../models/index");
 
 class ContactsController {
