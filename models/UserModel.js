@@ -1,5 +1,5 @@
 const { model, Schema } = require("mongoose");
-
+const gravatar = require("gravatar");
 const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 
 const userSchema = new Schema(
@@ -14,6 +14,9 @@ const userSchema = new Schema(
       required: [true, "Email is required"],
       unique: true,
     },
+    avatarURL: {
+      type: String,
+    },
     subscription: {
       type: String,
       enum: ["starter", "pro", "business"],
@@ -21,7 +24,18 @@ const userSchema = new Schema(
     },
     token: String,
   },
-  { versionKey: false }
+  { timestamps: true, versionKey: false }
 );
+
+userSchema.pre("save", function (next) {
+  if (!this.avatarURL) {
+    this.avatarURL = gravatar.url(
+      this.email,
+      { s: "200", r: "pg", d: "mm" },
+      true
+    );
+  }
+  next();
+});
 
 module.exports = model("users", userSchema);

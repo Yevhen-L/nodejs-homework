@@ -1,8 +1,11 @@
 const contactsRouter = require("express").Router();
-const controllers = require("../../controllers/index");
 const asyncHandler = require("express-async-handler");
 const validateByID = require("../../middlewares/validateByID");
-const contactsController = controllers.contactsController;
+// const controllers = require("../../controllers/index");
+// const contactsController = controllers.contactsController;
+const {
+  contactsController: contactsController,
+} = require("..//../controllers/index");
 
 contactsRouter.post(
   "/",

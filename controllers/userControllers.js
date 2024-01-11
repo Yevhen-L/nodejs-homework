@@ -1,5 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
+const fs = require("fs/promises");
+const path = require("path");
+const Jimp = require("jimp");
 const { userModel: UserModel } = require("../models/index");
 
 class userControllers {
@@ -16,19 +20,30 @@ class userControllers {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+      const avatarURL = gravatar.url(
+        email,
+        { s: "200", r: "pg", d: "mm" },
+        true
+      );
+
       const newUser = await UserModel.create({
         email,
         password: hashedPassword,
+        avatarURL,
       });
 
       return res.status(201).json({
-        user: { email: newUser.email, subscription: newUser.subscription },
+        user: {
+          email: newUser.email,
+          subscription: newUser.subscription,
+          avatarURL: newUser.avatarURL,
+        },
       });
     } catch (error) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
-  //======================================================================
+
   loginUser = async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -54,7 +69,7 @@ class userControllers {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
-  //======================================================================
+
   logOutUser = async (req, res) => {
     try {
       const token = req.header("Authorization").replace("Bearer ", "");
@@ -82,12 +97,40 @@ class userControllers {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
   getCurrentUser = (req, res) => {
     try {
       const { email, subscription } = req.user;
       res.status(200).json({ email, subscription });
     } catch (error) {
       res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+  updateAvatar = async (req, res) => {
+    try {
+      const { userId } = req.user;
+
+      const { path: tmpPath, originalname } = req.file;
+      const avatarExtension = path.extname(originalname);
+      const newFileName = `${userId}_avatar${avatarExtension}`;
+      const avatarPath = path.join("public", "avatars", newFileName);
+
+      const image = await Jimp.read(tmpPath);
+      await image.cover(250, 250).writeAsync(avatarPath);
+
+      await fs.unlink(tmpPath);
+
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        userId,
+        { avatarURL: `/avatars/${newFileName}` },
+        { new: true }
+      );
+
+      res.status(200).json({ avatarURL: updatedUser.avatarURL });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   };
 }
