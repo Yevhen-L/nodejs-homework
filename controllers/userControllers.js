@@ -117,48 +117,41 @@ class userControllers {
     }
   };
 
-  // getCurrentUser = (req, res) => {
-  //   try {
-  //     const { email, subscription, avatarURL } = req.user || {};
-
-  //     const userData = {
-  //       email,
-  //       subscription,
-  //       avatarURL: avatarURL || null,
-  //     };
-
-  //     res.status(200).json(userData);
-  //   } catch (error) {
-  //     res.status(500).json({ message: "Internal Server Error" });
-  //   }
-  // };
-
   updateAvatar = async (req, res) => {
     try {
       const { user } = req;
       const { file } = req;
 
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       if (!file) {
         return res.status(400).json({ message: "No file provided" });
       }
 
-      // Отримати користувача за допомогою його email
-      const { email } = user;
-      const existingUser = await UserModel.findOne({ email });
-
-      if (!existingUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const newFileName = `${existingUser._id}_avatar${path.extname(
+      const newFileName = `${user._id}_avatar${path.extname(
         file.originalname
       )}`;
 
+      const image = await Jimp.read(file.buffer);
+      await image.cover(250, 250);
+
+      // Змінити шлях з tmp до public/avatars
+      const avatarPath = path.join("public", "avatars", newFileName);
+
+      // Зберегти аватарку в папку public/avatars з унікальним ім'ям
+      await image.writeAsync(avatarPath);
+
       const updatedUser = await UserModel.findByIdAndUpdate(
-        existingUser._id,
+        user._id,
         { avatarURL: `/avatars/${newFileName}` },
         { new: true }
       );
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
       res.status(200).json({ avatarURL: updatedUser.avatarURL });
     } catch (error) {
@@ -166,7 +159,6 @@ class userControllers {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
-
   // updateAvatar = async (req, res) => {
   //   try {
   //     const { user } = req;
