@@ -44,4 +44,4 @@ const processAndMoveAvatar = async (req, res, next) => {
   }
 };
 
-module.exports = { upload, processAndMoveAvatar };
+module.exports = upload.single("avatar");

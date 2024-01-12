@@ -142,12 +142,20 @@ class userControllers {
         return res.status(400).json({ message: "No file provided" });
       }
 
-      const newFileName = `${user._id}_avatar${path.extname(
+      // Отримати користувача за допомогою його email
+      const { email } = user;
+      const existingUser = await UserModel.findOne({ email });
+
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const newFileName = `${existingUser._id}_avatar${path.extname(
         file.originalname
       )}`;
 
       const updatedUser = await UserModel.findByIdAndUpdate(
-        user._id,
+        existingUser._id,
         { avatarURL: `/avatars/${newFileName}` },
         { new: true }
       );
@@ -158,6 +166,32 @@ class userControllers {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
+  // updateAvatar = async (req, res) => {
+  //   try {
+  //     const { user } = req;
+  //     const { file } = req;
+
+  //     if (!file) {
+  //       return res.status(400).json({ message: "No file provided" });
+  //     }
+
+  //     const newFileName = `${user._id}_avatar${path.extname(
+  //       file.originalname
+  //     )}`;
+
+  //     const updatedUser = await UserModel.findByIdAndUpdate(
+  //       user._id,
+  //       { avatarURL: `/avatars/${newFileName}` },
+  //       { new: true }
+  //     );
+
+  //     res.status(200).json({ avatarURL: updatedUser.avatarURL });
+  //   } catch (error) {
+  //     console.error(error);
+  //     return res.status(500).json({ message: "Internal Server Error" });
+  //   }
+  // };
 }
 
 module.exports = new userControllers();

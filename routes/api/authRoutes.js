@@ -5,7 +5,7 @@ const {
 } = require("..//../controllers/index");
 
 const { authenticateToken } = require("../../middlewares/authMiddleware");
-const { upload } = require("..//../middlewares/validateAvatar");
+const uploadAvatar = require("..//../middlewares/validateAvatar");
 
 usersRouter.post("/register", UserControllers.registerUser);
 usersRouter.post("/login", UserControllers.loginUser);
@@ -14,7 +14,7 @@ usersRouter.get("/current", authenticateToken, UserControllers.getCurrentUser);
 usersRouter.patch(
   "/avatars",
   authenticateToken,
-  upload.single("avatar"),
+  uploadAvatar,
   UserControllers.updateAvatar
 );
 
