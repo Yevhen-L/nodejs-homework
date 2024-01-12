@@ -2,8 +2,10 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-const notFoundRoutes = require("./middlewares/NotFoundRoutes");
-const errorHandler = require("./middlewares/errorHandler");
+const {
+  NotFoundRoutes: notFoundRoutes,
+  errorHandler: errorHandler,
+} = require("./middlewares/index");
 
 const { contactsRouter, usersRouter } = require("./routes/api/index");
 

@@ -63,7 +63,11 @@ class userControllers {
 
       return res.status(200).json({
         token,
-        user: { email: user.email, subscription: user.subscription },
+        user: {
+          email: user.email,
+          subscription: user.subscription,
+          avatarURL: user.avatarURL,
+        },
       });
     } catch (error) {
       return res.status(500).json({ message: "Internal Server Error" });
@@ -89,7 +93,7 @@ class userControllers {
       user.token = null;
       await user.save();
 
-      res.status(200).json({ message: "User is logged out" });
+      // res.status(200).json({ message: "User is logged out" });
 
       res.status(204).end();
     } catch (error) {
@@ -100,29 +104,50 @@ class userControllers {
 
   getCurrentUser = (req, res) => {
     try {
-      const { email, subscription } = req.user;
-      res.status(200).json({ email, subscription });
+      const { email, subscription, avatarURL } = req.user;
+      res.status(200).json({
+        user: {
+          email,
+          subscription,
+          avatarURL,
+        },
+      });
     } catch (error) {
       res.status(500).json({ message: "Internal Server Error" });
     }
   };
 
+  // getCurrentUser = (req, res) => {
+  //   try {
+  //     const { email, subscription, avatarURL } = req.user || {};
+
+  //     const userData = {
+  //       email,
+  //       subscription,
+  //       avatarURL: avatarURL || null,
+  //     };
+
+  //     res.status(200).json(userData);
+  //   } catch (error) {
+  //     res.status(500).json({ message: "Internal Server Error" });
+  //   }
+  // };
+
   updateAvatar = async (req, res) => {
     try {
-      const { userId } = req.user;
+      const { user } = req;
+      const { file } = req;
 
-      const { path: tmpPath, originalname } = req.file;
-      const avatarExtension = path.extname(originalname);
-      const newFileName = `${userId}_avatar${avatarExtension}`;
-      const avatarPath = path.join("public", "avatars", newFileName);
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
 
-      const image = await Jimp.read(tmpPath);
-      await image.cover(250, 250).writeAsync(avatarPath);
-
-      await fs.unlink(tmpPath);
+      const newFileName = `${user._id}_avatar${path.extname(
+        file.originalname
+      )}`;
 
       const updatedUser = await UserModel.findByIdAndUpdate(
-        userId,
+        user._id,
         { avatarURL: `/avatars/${newFileName}` },
         { new: true }
       );
@@ -136,3 +161,5 @@ class userControllers {
 }
 
 module.exports = new userControllers();
+
+// registerUser, loginUser, logOutUser, getCurrentUser, updateAvatar;
