@@ -174,7 +174,7 @@ class userControllers {
 
 module.exports = new userControllers();
 
-// registerUser, loginUser, logOutUser, getCurrentUser, updateAvatar;
+// {registerUser, loginUser, logOutUser, getCurrentUser, updateAvatar;}
 
 // ще метод для генерації URL аватара з Gravatar
 // generateGravatarAvatar(email) {
