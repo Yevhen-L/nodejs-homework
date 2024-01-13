@@ -20,16 +20,16 @@ class userControllers {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      const avatarURL = gravatar.url(
-        email,
-        { s: "200", r: "pg", d: "mm" },
-        true
-      );
+      // Зберегти зображення у папці tmp
+      const tmpFileName = `${Date.now()}_tmp_avatar.jpg`;
+      const tmpPath = path.join(__dirname, "..", "tmp", tmpFileName);
+      await this.saveAvatarToTmp(this.generateGravatarAvatar(email), tmpPath);
 
+      // Зберегти користувача у базі даних
       const newUser = await UserModel.create({
         email,
         password: hashedPassword,
-        avatarURL,
+        avatarURL: `/tmp/${tmpFileName}`, // Додайте URL до тимчасового файла в базу даних
       });
 
       return res.status(201).json({
@@ -40,9 +40,22 @@ class userControllers {
         },
       });
     } catch (error) {
+      console.error(error);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
+  // Додатковий метод для генерації URL аватара з Gravatar
+  generateGravatarAvatar(email) {
+    return gravatar.url(email, { s: "200", r: "pg", d: "mm" }, true);
+  }
+
+  async saveAvatarToTmp(avatarURL, tmpPath) {
+    // Завантажити зображення та зберегти його у папці tmp
+    const image = await Jimp.read(avatarURL);
+    await image.cover(250, 250);
+    await image.writeAsync(tmpPath);
+  }
 
   loginUser = async (req, res) => {
     try {
