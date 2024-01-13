@@ -18,6 +18,4 @@ usersRouter.patch(
   UserControllers.updateAvatar
 );
 
-// usersRouter.use("/users/protected", authenticateToken);
-
 module.exports = usersRouter;

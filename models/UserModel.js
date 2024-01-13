@@ -27,15 +27,4 @@ const userSchema = new Schema(
   { versionKey: false, timestamps: true }
 );
 
-// userSchema.pre("save", function (next) {
-//   if (!this.avatarURL) {
-//     this.avatarURL = gravatar.url(
-//       this.email,
-//       { s: "200", r: "pg", d: "mm" },
-//       true
-//     );
-//   }
-//   next();
-// });
-
 module.exports = model("users", userSchema);
