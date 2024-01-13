@@ -106,7 +106,7 @@ class userControllers {
       user.token = null;
       await user.save();
 
-      // res.status(200).json({ message: "User is logged out" });
+      res.status(200).json({ message: "User is logged out" });
 
       res.status(204).end();
     } catch (error) {
