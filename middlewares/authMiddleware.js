@@ -23,11 +23,12 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    req.user = {
-      id: user._id,
-      email: user.email,
-      subscription: user.subscription,
-    };
+    req.user = user;
+    // req.user = {
+    //   id: user._id,
+    //   email: user.email,
+    //   subscription: user.subscription,
+    // };
     next();
   } catch (error) {
     return res.status(401).json({ message: "Unauthorized" });
