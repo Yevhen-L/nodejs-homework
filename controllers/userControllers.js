@@ -4,6 +4,7 @@ const gravatar = require("gravatar");
 const fs = require("fs/promises");
 const path = require("path");
 const Jimp = require("jimp");
+
 const { userModel: UserModel } = require("../models/index");
 
 class userControllers {
@@ -18,18 +19,19 @@ class userControllers {
       }
 
       const saltRounds = 10;
+
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Зберегти зображення у папці tmp
       const tmpFileName = `${Date.now()}_tmp_avatar.jpg`;
+
       const tmpPath = path.join(__dirname, "..", "tmp", tmpFileName);
+
       await this.saveAvatarToTmp(this.generateGravatarAvatar(email), tmpPath);
 
-      // Зберегти користувача у базі даних
       const newUser = await UserModel.create({
         email,
         password: hashedPassword,
-        avatarURL: `/tmp/${tmpFileName}`, // Додайте URL до тимчасового файла в базу даних
+        avatarURL: `/tmp/${tmpFileName}`,
       });
 
       return res.status(201).json({
@@ -44,18 +46,6 @@ class userControllers {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
-
-  // Додатковий метод для генерації URL аватара з Gravatar
-  generateGravatarAvatar(email) {
-    return gravatar.url(email, { s: "200", r: "pg", d: "mm" }, true);
-  }
-
-  async saveAvatarToTmp(avatarURL, tmpPath) {
-    // Завантажити зображення та зберегти його у папці tmp
-    const image = await Jimp.read(avatarURL);
-    await image.cover(250, 250);
-    await image.writeAsync(tmpPath);
-  }
 
   loginUser = async (req, res) => {
     try {
@@ -135,12 +125,10 @@ class userControllers {
       const { user } = req;
       const { file } = req;
 
-      // Перевірка авторизації
       if (!user) {
         return res.status(401).json({ message: "Not authorized" });
       }
 
-      // Перевірка наявності файлу
       if (!file) {
         return res.status(400).json({ message: "No file provided" });
       }
@@ -148,17 +136,14 @@ class userControllers {
       const fileExtension = path.extname(file.originalname);
       const uniqueFileName = `${user._id}_avatar_${Date.now()}${fileExtension}`;
 
-      // Обробка зображення
       const image = await Jimp.read(file.buffer);
+
       await image.cover(250, 250);
 
-      // Шлях до папки tmp
       const tmpPath = path.join(__dirname, "..", "tmp", uniqueFileName);
 
-      // Збереження обробленого зображення в папку tmp
       await image.writeAsync(tmpPath);
 
-      // Шлях до папки public/avatars
       const avatarPath = path.join(
         __dirname,
         "..",
@@ -167,10 +152,8 @@ class userControllers {
         uniqueFileName
       );
 
-      // Перенесення обробленого зображення з tmp в public/avatars
       await image.writeAsync(avatarPath);
 
-      // Оновлення користувача з новим URL аватарки
       const updatedUser = await UserModel.findByIdAndUpdate(
         user._id,
         { avatarURL: `/avatars/${uniqueFileName}` },
@@ -192,3 +175,13 @@ class userControllers {
 module.exports = new userControllers();
 
 // registerUser, loginUser, logOutUser, getCurrentUser, updateAvatar;
+
+// ще метод для генерації URL аватара з Gravatar
+// generateGravatarAvatar(email) {
+//   return gravatar.url(email, { s: "200", r: "pg", d: "mm" }, true);
+// }
+// async saveAvatarToTmp(avatarURL, tmpPath) {
+//   const image = await Jimp.read(avatarURL);
+//   await image.cover(250, 250);
+//   await image.writeAsync(tmpPath);
+// }
