@@ -5,7 +5,7 @@ const fs = require("fs/promises");
 const path = require("path");
 const Jimp = require("jimp");
 
-const { userModel: UserModel } = require("../models/index");
+const { userModel: UserModel } = require("..//models/index");
 
 class userControllers {
   registerUser = async (req, res) => {
@@ -19,19 +19,34 @@ class userControllers {
       }
 
       const saltRounds = 10;
-
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      const tmpFileName = `${Date.now()}_tmp_avatar.jpg`;
+      const gravatarURL = this.generateGravatarAvatar(email);
 
+      const tmpFileName = `${Date.now()}_tmp_avatar.jpg`;
       const tmpPath = path.join(__dirname, "..", "tmp", tmpFileName);
 
-      await this.saveAvatarToTmp(this.generateGravatarAvatar(email), tmpPath);
+      // Завантажуємо оригінал зображення в tmp
+      await this.saveAvatarToTmp(gravatarURL, tmpPath);
+
+      // Копіюємо оригінал до папки avatars
+      const avatarFileName = `${Date.now()}_avatar.jpg`;
+      const avatarPath = path.join(
+        __dirname,
+        "..",
+        "public",
+        "avatars",
+        avatarFileName
+      );
+      await this.copyImage(tmpPath, avatarPath);
+
+      // Обробляємо Jimp
+      await this.processImage(avatarPath);
 
       const newUser = await UserModel.create({
         email,
         password: hashedPassword,
-        avatarURL: `/tmp/${tmpFileName}`,
+        avatarURL: `/avatars/${avatarFileName}`,
       });
 
       return res.status(201).json({
@@ -46,6 +61,40 @@ class userControllers {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
+  async processImage(sourcePath) {
+    try {
+      const image = await Jimp.read(sourcePath);
+      await image.cover(250, 250);
+      await image.writeAsync(sourcePath); // Переписано так, щоб перезаписати оригінальний файл
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while processing avatar image");
+    }
+  }
+
+  generateGravatarAvatar(email) {
+    return gravatar.url(email, { s: "200", r: "pg", d: "mm" }, true);
+  }
+
+  async saveAvatarToTmp(avatarURL, tmpPath) {
+    try {
+      const image = await Jimp.read(avatarURL);
+      await image.writeAsync(tmpPath);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while saving avatar image to tmp");
+    }
+  }
+
+  async copyImage(sourcePath, destinationPath) {
+    try {
+      await fs.copyFile(sourcePath, destinationPath);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while moving avatar image");
+    }
+  }
 
   loginUser = async (req, res) => {
     try {
@@ -134,29 +183,30 @@ class userControllers {
       }
 
       const fileExtension = path.extname(file.originalname);
-      const uniqueFileName = `${user._id}_avatar_${Date.now()}${fileExtension}`;
+      const tmpFileName = `${user._id}_tmp_avatar${fileExtension}`;
+      const avatarFileName = `${user._id}_${Date.now()}_${file.originalname}`;
 
+      // Зберігаємо оригінал завантаженого зображення в tmp
+      const tmpPath = path.join(__dirname, "..", "tmp", tmpFileName);
+      await fs.writeFile(tmpPath, file.buffer);
+
+      // Обробляємо Jimp
       const image = await Jimp.read(file.buffer);
-
       await image.cover(250, 250);
 
-      const tmpPath = path.join(__dirname, "..", "tmp", uniqueFileName);
-
-      await image.writeAsync(tmpPath);
-
+      // Зберігаємо оброблене зображення до папки avatars
       const avatarPath = path.join(
         __dirname,
         "..",
         "public",
         "avatars",
-        uniqueFileName
+        avatarFileName
       );
-
       await image.writeAsync(avatarPath);
 
       const updatedUser = await UserModel.findByIdAndUpdate(
         user._id,
-        { avatarURL: `/avatars/${uniqueFileName}` },
+        { avatarURL: `/avatars/${avatarFileName}` },
         { new: true }
       );
 
@@ -173,15 +223,3 @@ class userControllers {
 }
 
 module.exports = new userControllers();
-
-// {registerUser, loginUser, logOutUser, getCurrentUser, updateAvatar;}
-
-// ще метод для генерації URL аватара з Gravatar
-// generateGravatarAvatar(email) {
-//   return gravatar.url(email, { s: "200", r: "pg", d: "mm" }, true);
-// }
-// async saveAvatarToTmp(avatarURL, tmpPath) {
-//   const image = await Jimp.read(avatarURL);
-//   await image.cover(250, 250);
-//   await image.writeAsync(tmpPath);
-// }
