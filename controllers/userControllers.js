@@ -26,10 +26,8 @@ class userControllers {
       const tmpFileName = `${Date.now()}_tmp_avatar.jpg`;
       const tmpPath = path.join(__dirname, "..", "tmp", tmpFileName);
 
-      // Завантажуємо оригінал зображення в tmp
       await this.saveAvatarToTmp(gravatarURL, tmpPath);
 
-      // Копіюємо оригінал до папки avatars
       const avatarFileName = `${Date.now()}_avatar.jpg`;
       const avatarPath = path.join(
         __dirname,
@@ -40,7 +38,6 @@ class userControllers {
       );
       await this.copyImage(tmpPath, avatarPath);
 
-      // Обробляємо Jimp
       await this.processImage(avatarPath);
 
       const newUser = await UserModel.create({
@@ -66,7 +63,7 @@ class userControllers {
     try {
       const image = await Jimp.read(sourcePath);
       await image.cover(250, 250);
-      await image.writeAsync(sourcePath); // Переписано так, щоб перезаписати оригінальний файл
+      await image.writeAsync(sourcePath);
     } catch (error) {
       console.error(error);
       throw new Error("Error while processing avatar image");
@@ -186,15 +183,12 @@ class userControllers {
       const tmpFileName = `${user._id}_tmp_avatar${fileExtension}`;
       const avatarFileName = `${user._id}_${Date.now()}_${file.originalname}`;
 
-      // Зберігаємо оригінал завантаженого зображення в tmp
       const tmpPath = path.join(__dirname, "..", "tmp", tmpFileName);
       await fs.writeFile(tmpPath, file.buffer);
 
-      // Обробляємо Jimp
       const image = await Jimp.read(file.buffer);
       await image.cover(250, 250);
 
-      // Зберігаємо оброблене зображення до папки avatars
       const avatarPath = path.join(
         __dirname,
         "..",
