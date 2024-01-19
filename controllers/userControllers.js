@@ -4,6 +4,9 @@ const gravatar = require("gravatar");
 const fs = require("fs/promises");
 const path = require("path");
 const Jimp = require("jimp");
+const { v4: uuidv4 } = require("uuid");
+const nodemailer = require("nodemailer");
+const sendVerificationEmail = require("../helpers/email");
 
 const { userModel: UserModel } = require("..//models/index");
 
@@ -20,6 +23,7 @@ class userControllers {
 
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
+      const verificationToken = uuidv4();
 
       const gravatarURL = this.generateGravatarAvatar(email);
 
@@ -44,8 +48,9 @@ class userControllers {
         email,
         password: hashedPassword,
         avatarURL: `/avatars/${avatarFileName}`,
+        verificationToken,
       });
-
+      await sendVerificationEmail(newUser.email, verificationToken);
       return res.status(201).json({
         user: {
           email: newUser.email,
@@ -209,6 +214,64 @@ class userControllers {
       }
 
       res.status(200).json({ avatarURL: updatedUser.avatarURL });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  verifyUser = async (req, res) => {
+    try {
+      const { verificationToken } = req.params;
+      const user = await UserModel.findOne({ verificationToken });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.verify) {
+        return res.status(400).json({ message: "User is already verified" });
+      }
+
+      user.verificationToken = null;
+      user.verify = true;
+      await user.save();
+
+      return res.status(200).json({ message: "Verification successful" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+  resendVerificationEmail = async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res
+          .status(400)
+          .json({ message: "Missing required field email" });
+      }
+
+      const user = await UserModel.findOne({ email });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.verify) {
+        return res
+          .status(400)
+          .json({ message: "Verification has already been passed" });
+      }
+
+      const newVerificationToken = uuidv4();
+      user.verificationToken = newVerificationToken;
+      await user.save();
+
+      await sendVerificationEmail(user.email, newVerificationToken);
+
+      return res.status(200).json({ message: "Verification email sent" });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Internal Server Error" });

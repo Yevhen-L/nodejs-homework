@@ -1,11 +1,9 @@
 const express = require("express");
 const usersRouter = express.Router();
-const {
-  userControllers: UserControllers,
-} = require("..//../controllers/index");
+const { userControllers: UserControllers } = require("../../controllers/index");
 
 const { authenticateToken } = require("../../middlewares/authMiddleware");
-const uploadAvatar = require("..//../middlewares/validateAvatar");
+const uploadAvatar = require("../../middlewares/validateAvatar");
 
 usersRouter.post("/register", UserControllers.registerUser);
 usersRouter.post("/login", UserControllers.loginUser);
@@ -17,5 +15,8 @@ usersRouter.patch(
   uploadAvatar,
   UserControllers.updateAvatar
 );
+
+usersRouter.get("/verify/:verificationToken", UserControllers.verifyUser);
+usersRouter.post("/verify", UserControllers.resendVerificationEmail);
 
 module.exports = usersRouter;

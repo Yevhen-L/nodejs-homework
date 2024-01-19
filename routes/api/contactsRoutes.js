@@ -4,7 +4,7 @@ const validateByID = require("../../middlewares/validateByID");
 
 const {
   contactsController: contactsController,
-} = require("..//../controllers/index");
+} = require("../../controllers/index");
 contactsRouter.post(
   "/",
   (req, res, next) => {
