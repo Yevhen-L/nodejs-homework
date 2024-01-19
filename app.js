@@ -21,6 +21,7 @@ app.use(express.json());
 
 app.use("/contacts", contactsRouter);
 app.use("/users", usersRouter);
+app.use("/auth", usersRouter);
 
 app.use("*", notFoundRoutes);
 app.use(errorHandler);

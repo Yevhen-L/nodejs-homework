@@ -12,7 +12,7 @@ const sendVerificationEmail = async (email, verificationToken) => {
     },
   });
 
-  const verificationLink = `${process.env.BASE_URL}/users/verify/${verificationToken}`;
+  const verificationLink = `${process.env.BASE_URL}/auth/verify/${verificationToken}`;
 
   const mailOptions = {
     from: process.env.UKRNET_EMAIL,

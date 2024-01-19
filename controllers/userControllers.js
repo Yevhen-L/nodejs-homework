@@ -56,6 +56,7 @@ class userControllers {
           email: newUser.email,
           subscription: newUser.subscription,
           avatarURL: newUser.avatarURL,
+          verificationToken,
         },
       });
     } catch (error) {
@@ -158,12 +159,13 @@ class userControllers {
 
   getCurrentUser = (req, res) => {
     try {
-      const { email, subscription, avatarURL } = req.user;
+      const { email, subscription, avatarURL, verificationToken } = req.user;
       res.status(200).json({
         user: {
           email,
           subscription,
           avatarURL,
+          verificationToken,
         },
       });
     } catch (error) {
@@ -219,27 +221,52 @@ class userControllers {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
   verifyUser = async (req, res) => {
     try {
       const { verificationToken } = req.params;
+
+      if (
+        !verificationToken ||
+        typeof verificationToken !== "string" ||
+        verificationToken.trim() === ""
+      ) {
+        return res.status(400).json({ message: "Invalid verification token" });
+      }
+
       const user = await UserModel.findOne({ verificationToken });
 
       if (!user) {
+        console.error("User not found token:", verificationToken);
         return res.status(404).json({ message: "User not found" });
       }
 
       if (user.verify) {
+        console.error(
+          "User is already verified by the verification token:",
+          verificationToken
+        );
         return res.status(400).json({ message: "User is already verified" });
       }
 
-      user.verificationToken = null;
+      user.verificationToken = "null";
       user.verify = true;
       await user.save();
 
-      return res.status(200).json({ message: "Verification successful" });
+      console.log("User has been successfully verified:", user._id);
+      return res
+        .status(200)
+        .json({ message: "The verification was successful" });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      console.error("User verification error:", error);
+
+      if (error.name === "ValidationError") {
+        return res
+          .status(400)
+          .json({ message: "Validation error", errors: error.errors });
+      }
+
+      return res.status(500).json({ message: "Internal server error" });
     }
   };
 
